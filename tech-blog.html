@@ -6,21 +6,17 @@
     <title>Technical Blog</title>
     <link rel="stylesheet" href="./blog.css" />
   </head>
-  <body class="tech-blog-page">
+  <body class="tech-blog-page" data-posts-api="./api/tech-posts" data-index-page="./tech-blog.html" data-detail-page="./tech-post.html" data-default-post="20260601-markdown-render-demo">
     <canvas class="motion-field" id="motionField" aria-hidden="true"></canvas>
-    <div class="space simple-space" data-decorative-moon aria-hidden="true"></div>
+    <div class="space simple-space" data-decorative-moon data-decorative-body="mars"></div>
     <div class="grid-field" aria-hidden="true"></div>
     <main class="simple-page">
-      <section class="simple-panel markdown-panel">
+      <section class="simple-panel markdown-panel post-index-panel">
         <p class="eyebrow">Technical Blog</p>
-        <h1 data-markdown-page-title>Markdown</h1>
-        <p class="markdown-meta" data-markdown-page-meta></p>
+        <h1>Technical Notes</h1>
+        <p class="markdown-meta">Posts are ordered by time. Select a node to open the article page.</p>
+        <div class="tag-filter" data-tag-filter aria-label="Filter posts by tag"></div>
         <nav class="post-scroll" data-post-timeline aria-label="Technical blog posts"></nav>
-        <nav class="markdown-toc" data-markdown-page-toc aria-label="Article table of contents"></nav>
-        <article
-          class="markdown-body"
-          data-markdown-article
-        ></article>
         <a class="back-link" href="./blog.html">Back to About Me</a>
       </section>
     </main>

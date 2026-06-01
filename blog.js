@@ -149,7 +149,7 @@ function initDecorativeMoon() {
 
   const media = window.matchMedia("(orientation: landscape) and (min-width: 761px)");
   const sync = () => {
-    const existing = mount.querySelector(".moon");
+    const existing = mount.querySelector(".celestial-link");
     if (!media.matches) {
       existing?.remove();
       return;
@@ -157,8 +157,19 @@ function initDecorativeMoon() {
 
     if (existing) return;
 
+    const bodyName = mount.dataset.decorativeBody || "mars";
+    const sources = {
+      mars: "./assets/mars-rotation-720p.mp4",
+      saturn: "./assets/saturn-spinning-jpl.m4v",
+      jupiter: "./assets/jupiter-globe-rotation-loop.mp4"
+    };
+    const link = document.createElement("a");
+    link.className = `celestial-link ${bodyName}-link`;
+    link.href = "./blog.html";
+    link.setAttribute("aria-label", "Back to About Me");
+
     const video = document.createElement("video");
-    video.className = "moon mars";
+    video.className = `moon ${bodyName}`;
     video.autoplay = true;
     video.muted = true;
     video.loop = true;
@@ -166,10 +177,11 @@ function initDecorativeMoon() {
     video.preload = "auto";
 
     const source = document.createElement("source");
-    source.src = "./assets/mars-rotation-720p.mp4";
+    source.src = sources[bodyName] || sources.mars;
     source.type = "video/mp4";
     video.appendChild(source);
-    mount.appendChild(video);
+    link.appendChild(video);
+    mount.appendChild(link);
     initMoonVideo(video);
   };
 

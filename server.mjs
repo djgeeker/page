@@ -21,7 +21,8 @@ const mimeTypes = {
   ".avif": "image/avif",
   ".gif": "image/gif",
   ".svg": "image/svg+xml",
-  ".mp4": "video/mp4"
+  ".mp4": "video/mp4",
+  ".m4v": "video/mp4"
 };
 
 const server = createServer(async (request, response) => {
@@ -35,7 +36,13 @@ const server = createServer(async (request, response) => {
     }
 
     if (url.pathname === "/api/tech-posts") {
-      const posts = await scanTechPosts();
+      const posts = await scanMarkdownPosts("tech-blog");
+      sendJson(response, posts);
+      return;
+    }
+
+    if (url.pathname === "/api/life-posts") {
+      const posts = await scanMarkdownPosts("life-notes");
       sendJson(response, posts);
       return;
     }
@@ -103,8 +110,8 @@ async function scanGallery() {
   return items;
 }
 
-async function scanTechPosts() {
-  const postsRoot = join(root, "content", "tech-blog");
+async function scanMarkdownPosts(section) {
+  const postsRoot = join(root, "content", section);
   const entries = await safeReaddir(postsRoot, { withFileTypes: true });
   const files = entries
     .filter((entry) => entry.isFile() && extname(entry.name).toLowerCase() === ".md")
