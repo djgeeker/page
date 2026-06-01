@@ -10,6 +10,10 @@ let threeReady = false;
 
 resize();
 window.addEventListener("resize", resize);
+// The canvas is fixed at width/height:100%, so its box excludes the scrollbar.
+// Observe it directly so the field re-fits when a scrollbar appears/disappears
+// (e.g. after async article content loads) — window "resize" won't fire then.
+new ResizeObserver(resize).observe(canvas);
 window.addEventListener("pointermove", (event) => {
   pointer.x = event.clientX / Math.max(window.innerWidth, 1);
   pointer.y = event.clientY / Math.max(window.innerHeight, 1);
@@ -23,12 +27,14 @@ initThreeField();
 
 function resize() {
   const dpr = Math.min(window.devicePixelRatio || 1, 2);
-  width = window.innerWidth;
-  height = window.innerHeight;
+  // Use the canvas's own laid-out box (CSS width/height:100%, which excludes the
+  // scrollbar) instead of window.innerWidth/innerHeight (which include it).
+  // Otherwise the backing buffer is wider than the visible area and the field
+  // renders off-center on scrollable pages.
+  width = canvas.clientWidth || window.innerWidth;
+  height = canvas.clientHeight || window.innerHeight;
   canvas.width = Math.floor(width * dpr);
   canvas.height = Math.floor(height * dpr);
-  canvas.style.width = `${width}px`;
-  canvas.style.height = `${height}px`;
   context.setTransform(dpr, 0, 0, dpr, 0, 0);
   seedPoints();
 }
