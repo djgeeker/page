@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Photo Journal Showcase</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="site-shell" aria-live="polite">
+      <section class="stage" id="stage">
+        <aside class="text-panel" aria-label="地点文字信息">
+          <div class="topline reveal-line" data-reveal>
+            <span id="chapterLabel">CHAPTER 01</span>
+            <span class="dot"></span>
+            <span id="locationLabel">LOCATION</span>
+          </div>
+
+          <div class="title-wrap" aria-label="地点英文标题">
+            <h1 id="heroTitle" class="hero-title reveal-title">SINGAPORE</h1>
+          </div>
+
+          <div class="rule-row reveal-line" data-reveal>
+            <span class="accent-rule"></span>
+            <span id="themeName" class="theme-name">MORANDI GLASS</span>
+          </div>
+
+          <p id="locationCn" class="location-cn reveal-line" data-reveal>新加坡</p>
+          <p id="brushNote" class="brush-note reveal-line" data-reveal>changi · marina bay · the way home</p>
+
+          <dl class="meta-grid reveal-line" data-reveal>
+            <div>
+              <dt>DATE</dt>
+              <dd id="dateValue">2026</dd>
+            </div>
+            <div>
+              <dt>TIME</dt>
+              <dd id="timeValue">07:44</dd>
+            </div>
+            <div>
+              <dt>COORDS</dt>
+              <dd id="coordsValue">1.350, 103.988</dd>
+            </div>
+          </dl>
+
+          <blockquote id="captionValue" class="caption reveal-line" data-reveal>
+            jewel, indoor rain
+          </blockquote>
+
+          <div class="palette-row reveal-line" id="paletteRow" data-reveal aria-label="当前主题色块"></div>
+        </aside>
+
+        <section class="photo-panel" aria-label="照片展示">
+          <figure class="photo-frame" id="photoFrame">
+            <img id="mainPhoto" alt="当前地点照片" />
+            <figcaption class="photo-caption">
+              <span id="photoPlace">SINGAPORE</span>
+              <span id="photoIndex">01 / 01</span>
+            </figcaption>
+            <div class="photo-info">
+              <span id="photoTime">07:44</span>
+              <span id="photoCoords">1.350, 103.988</span>
+            </div>
+          </figure>
+        </section>
+
+        <nav class="preview-rail" aria-label="地点预览">
+          <div class="rail-head">
+            <span id="railCount">01</span>
+            <span>LOCATIONS</span>
+          </div>
+          <div class="preview-window">
+            <div class="preview-track" id="previewTrack"></div>
+          </div>
+          <div class="rail-progress" id="railProgress"></div>
+        </nav>
+      </section>
+
+      <section class="scroll-space" id="scrollSpace" aria-hidden="true"></section>
+    </main>
+
+    <script type="module" src="./script.js"></script>
+  </body>
+</html>

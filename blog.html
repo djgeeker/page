@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>About Me</title>
+    <link rel="stylesheet" href="./blog.css" />
+  </head>
+  <body>
+    <canvas class="motion-field" id="motionField" aria-hidden="true"></canvas>
+    <div class="three-field" id="threeField" aria-hidden="true"></div>
+    <div class="space" aria-hidden="true">
+      <video class="moon" autoplay muted loop playsinline preload="auto">
+        <source src="./assets/moon-turntable-360p30.mp4" type="video/mp4" />
+      </video>
+    </div>
+    <div class="grid-field" aria-hidden="true"></div>
+
+    <main class="about-home" aria-labelledby="heroTitle">
+      <section class="about-card">
+        <div class="halo-motion" aria-hidden="true"></div>
+        <div class="orbital-mark" aria-hidden="true">
+          <span></span>
+          <i></i>
+        </div>
+        <p class="eyebrow">About Me</p>
+        <h1 id="heroTitle">This time is <span>future.</span></h1>
+        <p class="profile-note">
+          &#29702;&#24615;&#12289;&#20811;&#21046;&#65292;&#21916;&#27426;&#25668;&#24433;&#21644;&#35270;&#35273;&#31995;&#32479;&#12290;&#25797;&#38271;&#25226;&#22797;&#26434;&#20869;&#23481;&#25286;&#25104;&#28165;&#26224;&#32467;&#26500;&#65292;&#20063;&#20250;&#35748;&#30495;&#20445;&#30041;&#36335;&#19978;&#30340;&#29031;&#29255;&#19982;&#29983;&#27963;&#29255;&#27573;&#12290;
+        </p>
+
+        <nav class="quick-links" aria-label="&#20869;&#23481;&#20837;&#21475;">
+          <a href="./tech-blog.html">&#20010;&#20154;&#25216;&#26415;&#21338;&#23458;</a>
+          <a href="./life-notes.html">&#29983;&#27963;&#38543;&#24819;&#24405;</a>
+          <a href="./index.html">&#25668;&#24433;&#20316;&#21697;&#38598;</a>
+        </nav>
+
+        <footer class="social-badges" aria-label="&#31038;&#20132;&#24509;&#26631;">
+          <a href="https://github.com/" aria-label="GitHub">
+            <span>GH</span>
+            GitHub
+          </a>
+          <a href="mailto:hello@example.com" aria-label="&#37038;&#31665;">
+            <span>@</span>
+            &#37038;&#31665;
+          </a>
+          <a href="https://www.bilibili.com/" aria-label="Bilibili">
+            <span>Bi</span>
+            Bilibili
+          </a>
+        </footer>
+      </section>
+    </main>
+
+    <script src="./blog.js"></script>
+  </body>
+</html>

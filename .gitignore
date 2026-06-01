@@ -1,0 +1,7 @@
+artifacts/
+*.log
+*.zip
+photo-showcase-motion-package/
+node_modules/
+.DS_Store
+Thumbs.db
