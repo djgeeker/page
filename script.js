@@ -4,7 +4,9 @@ const state = {
   items: [],
   activeIndex: 0,
   activeTheme: DEFAULT_THEME,
-  raf: 0
+  raf: 0,
+  desiredIndex: 0,
+  activating: false
 };
 
 const els = {
@@ -208,7 +210,7 @@ function scheduleScrollUpdate() {
   state.raf = window.requestAnimationFrame(handleScroll);
 }
 
-async function handleScroll() {
+function handleScroll() {
   state.raf = 0;
   if (!state.items.length) return;
 
@@ -221,7 +223,25 @@ async function handleScroll() {
   els.photoFrame.style.transform = `translate3d(0, ${sectionProgress * -18}px, 0) scale(${1 + sectionProgress * 0.012})`;
 
   if (nextIndex !== state.activeIndex) {
-    await setActive(nextIndex);
+    requestActive(nextIndex);
+  }
+}
+
+// Coalesce activations: only one setActive runs at a time. While it awaits
+// image-color sampling, later scroll targets are recorded in desiredIndex and
+// applied once the in-flight activation settles — avoiding concurrent,
+// out-of-order theme/content updates during fast scrolling.
+async function requestActive(index) {
+  state.desiredIndex = index;
+  if (state.activating) return;
+
+  state.activating = true;
+  try {
+    while (state.desiredIndex !== state.activeIndex) {
+      await setActive(state.desiredIndex);
+    }
+  } finally {
+    state.activating = false;
   }
 }
 

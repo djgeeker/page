@@ -149,8 +149,9 @@ async function scanMarkdownPosts(section) {
 async function sendStatic(pathname, response) {
   const cleanPath = decodeURIComponent(pathname === "/" ? "/index.html" : pathname);
   const target = normalize(join(root, cleanPath));
+  const rootPrefix = root.endsWith(sep) ? root : `${root}${sep}`;
 
-  if (!target.startsWith(root)) {
+  if (target !== rootPrefix.slice(0, -1) && !target.startsWith(rootPrefix)) {
     response.writeHead(403);
     response.end("Forbidden");
     return;

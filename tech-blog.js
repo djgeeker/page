@@ -121,7 +121,7 @@ async function openPost(post, options = {}) {
   }
 
   if (options.scrollToArticle) {
-    article.scrollIntoView({ block: "start", behavior: "smooth" });
+    article.scrollIntoView({ block: "start", behavior: resolveScrollBehavior() });
   }
 }
 
@@ -259,7 +259,7 @@ function scrollToSection(id, options = {}) {
   window.requestAnimationFrame(() => {
     target.scrollIntoView({
       block: "start",
-      behavior: options.behavior || "smooth"
+      behavior: resolveScrollBehavior(options.behavior || "smooth")
     });
     setActiveSection(id);
   });
@@ -287,6 +287,12 @@ function safeDecode(value) {
   } catch {
     return value || "";
   }
+}
+
+// JS scrollIntoView bypasses the CSS `scroll-behavior: auto !important` that
+// the reduced-motion media query sets, so honor the preference explicitly.
+function resolveScrollBehavior(preferred = "smooth") {
+  return window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : preferred;
 }
 
 function resolveRequestedPost() {

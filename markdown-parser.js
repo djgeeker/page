@@ -202,12 +202,12 @@ function renderInline(value) {
   output = escapeHtml(output);
   output = output.replace(/!\[([^\]]*)\]\(([^)\s]+)(?:\s+"([^"]+)")?\)/g, (_, alt, url, title) => {
     const safeUrl = sanitizeUrl(url);
-    const safeTitle = title ? ` title="${escapeAttribute(title)}"` : "";
-    return `<img src="${safeUrl}" alt="${escapeAttribute(alt)}"${safeTitle}>`;
+    const safeTitle = title ? ` title="${escapeQuotes(title)}"` : "";
+    return `<img src="${safeUrl}" alt="${escapeQuotes(alt)}"${safeTitle}>`;
   });
   output = output.replace(/\[([^\]]+)\]\(([^)\s]+)(?:\s+"([^"]+)")?\)/g, (_, label, url, title) => {
     const safeUrl = sanitizeUrl(url);
-    const safeTitle = title ? ` title="${escapeAttribute(title)}"` : "";
+    const safeTitle = title ? ` title="${escapeQuotes(title)}"` : "";
     return `<a href="${safeUrl}"${safeTitle}>${label}</a>`;
   });
   output = output.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
@@ -249,7 +249,7 @@ function uniqueSlug(text, slugs) {
     .replace(/^-+|-+$/g, "") || "section";
   const count = slugs.get(base) || 0;
   slugs.set(base, count + 1);
-  return count ? `${base}-${count + 1}` : base;
+  return count ? `${base}-${count}` : base;
 }
 
 function sanitizeUrl(value) {
@@ -268,4 +268,10 @@ function escapeHtml(value) {
 
 function escapeAttribute(value) {
   return escapeHtml(value).replace(/"/g, "&quot;");
+}
+
+// For values extracted after the source has already been escapeHtml-ed:
+// only the quote needs escaping to be attribute-safe.
+function escapeQuotes(value) {
+  return String(value).replace(/"/g, "&quot;");
 }
