@@ -127,8 +127,8 @@ body::before {
 
 .simple-space .celestial-link {
   top: clamp(42px, 9vh, 92px);
-  right: clamp(34px, 7vw, 120px);
-  left: auto;
+  left: clamp(34px, 7vw, 120px);
+  right: auto;
   width: clamp(132px, 14vw, 220px);
   height: clamp(132px, 14vw, 220px);
 }
