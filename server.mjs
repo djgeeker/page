@@ -147,7 +147,7 @@ async function scanMarkdownPosts(section) {
 }
 
 async function sendStatic(pathname, response) {
-  const cleanPath = decodeURIComponent(pathname === "/" ? "/index.html" : pathname);
+  const cleanPath = decodeURIComponent(pathname === "/" ? "/blog.html" : pathname);
   const target = normalize(join(root, cleanPath));
   const rootPrefix = root.endsWith(sep) ? root : `${root}${sep}`;
 

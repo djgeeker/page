@@ -48,6 +48,45 @@ button {
   min-height: 100vh;
 }
 
+.home-back {
+  position: fixed;
+  top: clamp(20px, 3vh, 30px);
+  left: clamp(20px, 4vw, 54px);
+  z-index: 20;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 9px 16px 9px 13px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--theme-text);
+  background: color-mix(in srgb, var(--theme-bg) 60%, transparent);
+  border: 1px solid color-mix(in srgb, var(--theme-line) 26%, transparent);
+  border-radius: 999px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 10px 30px var(--theme-shadow);
+  transition: color 220ms ease, border-color 220ms ease, background 220ms ease, transform 220ms ease;
+}
+
+.home-back:hover {
+  color: var(--theme-accent);
+  border-color: color-mix(in srgb, var(--theme-accent) 58%, transparent);
+  transform: translateY(-1px);
+}
+
+.home-back-arrow {
+  font-size: 14px;
+  line-height: 1;
+  transition: transform 220ms ease;
+}
+
+.home-back:hover .home-back-arrow {
+  transform: translateX(-3px);
+}
+
 .stage {
   position: fixed;
   inset: 0;
@@ -457,8 +496,9 @@ button {
   }
 
   .text-panel {
+    justify-content: flex-start;
     min-height: 48vh;
-    padding: 44px 28px 24px;
+    padding: 84px 28px 24px;
   }
 
   .hero-title {
