@@ -736,7 +736,6 @@ h1 span {
     place-items: start center;
     justify-content: center;
     align-items: start;
-    padding-right: clamp(260px, 22vw, 360px);
   }
 
   .article-page .article-panel {
@@ -747,7 +746,8 @@ h1 span {
   .section-axis {
     position: fixed;
     z-index: 7;
-    top: clamp(260px, 34vh, 360px);
+    top: 50%;
+    transform: translateY(-50%);
     right: clamp(34px, 4vw, 76px);
     display: grid;
     gap: 0;
