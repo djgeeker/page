@@ -3,6 +3,7 @@ const context = canvas.getContext("2d");
 const points = [];
 const pointer = { x: 0.5, y: 0.5 };
 const isTechBlogPage = document.body.classList.contains("tech-blog-page");
+const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 let width = 0;
 let height = 0;
 let frame = 0;
@@ -42,8 +43,8 @@ function resize() {
 function seedPoints() {
   points.length = 0;
   const count = isTechBlogPage
-    ? Math.max(42, Math.round((width * height) / 26000))
-    : Math.max(76, Math.round((width * height) / 13500));
+    ? Math.max(30, Math.round((width * height) / 40000))
+    : Math.max(52, Math.round((width * height) / 20000));
 
   for (let i = 0; i < count; i += 1) {
     if (!isTechBlogPage) {
@@ -133,7 +134,8 @@ function draw() {
   });
 
   context.globalCompositeOperation = "source-over";
-  requestAnimationFrame(draw);
+  // In reduced-motion mode render a single static frame instead of looping.
+  if (!prefersReducedMotion) requestAnimationFrame(draw);
 }
 
 function scrollToRequestedSection() {
@@ -239,7 +241,7 @@ async function initThreeField() {
     mount.appendChild(renderer.domElement);
 
     const geometry = new THREE.BufferGeometry();
-    const particleCount = window.innerWidth < 700 ? 340 : 760;
+    const particleCount = window.innerWidth < 700 ? 220 : 460;
     const positions = new Float32Array(particleCount * 3);
     const basePositions = new Float32Array(particleCount * 3);
     const phases = new Float32Array(particleCount);
