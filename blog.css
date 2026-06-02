@@ -210,11 +210,6 @@ a {
   padding: 56px 24px;
 }
 
-/* On content pages the planet sits top-left (≈280px tall).
-   Push the panel down so it starts below the planet zone. */
-.simple-page {
-  padding-top: clamp(300px, 34vh, 380px);
-}
 
 .about-card {
   position: relative;
