@@ -131,6 +131,15 @@ body::before {
   right: auto;
   width: clamp(170px, 19vw, 280px);
   height: clamp(170px, 19vw, 280px);
+  /* clip on the container so transform:scale on child video
+     only zooms content, not the visible circle size */
+  clip-path: circle(42% at 50% 50%);
+  overflow: hidden;
+}
+
+/* video inside inherits container clip — remove its own */
+.simple-space .celestial-link .moon {
+  clip-path: none;
 }
 
 .simple-space {
