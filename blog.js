@@ -173,7 +173,7 @@ function initDecorativeMoon() {
     };
     const link = document.createElement("a");
     link.className = `celestial-link ${bodyName}-link`;
-    link.href = "./blog.html";
+    link.href = "./blog.html#about-me";
     link.setAttribute("aria-label", "Back to About Me");
 
     const video = document.createElement("video");

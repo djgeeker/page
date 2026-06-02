@@ -1,9 +1,17 @@
-import { DEFAULT_THEME, classifyTheme, getThemeById, getThemeSwatches } from "./themes.js";
+﻿import { DEFAULT_THEME, classifyTheme, getThemeById, getThemeSwatches } from "./themes.js";
 
 const state = {
   items: [],
   activeIndex: 0,
   activeTheme: DEFAULT_THEME,
+  activePhotoIndex: 0,
+  photoIndexes: new Map(),
+  photoSequence: 0,
+  albumScrubbing: false,
+  albumPointerStartX: 0,
+  albumSuppressClick: false,
+  albumWheelLocked: false,
+  albumWheelUnlockTimer: 0,
   raf: 0,
   desiredIndex: 0,
   activating: false
@@ -29,6 +37,7 @@ const els = {
   photoIndex: document.querySelector("#photoIndex"),
   photoTime: document.querySelector("#photoTime"),
   photoCoords: document.querySelector("#photoCoords"),
+  albumStrip: document.querySelector("#albumStrip"),
   previewTrack: document.querySelector("#previewTrack"),
   railCount: document.querySelector("#railCount"),
   railProgress: document.querySelector("#railProgress")
@@ -39,7 +48,8 @@ init();
 async function init() {
   state.items = await loadGallery();
   if (!state.items.length) {
-    state.items = [fallbackItem()];
+    renderEmptyState();
+    return;
   }
 
   els.scrollSpace.style.height = `${state.items.length * 100}vh`;
@@ -47,6 +57,12 @@ async function init() {
   await setActive(0, { immediate: true });
   window.addEventListener("scroll", scheduleScrollUpdate, { passive: true });
   window.addEventListener("resize", scheduleScrollUpdate);
+  window.addEventListener("keydown", handleKeydown);
+  els.albumStrip.addEventListener("pointerdown", handleAlbumPointerDown);
+  els.albumStrip.addEventListener("pointermove", handleAlbumPointerMove);
+  els.albumStrip.addEventListener("pointerup", handleAlbumPointerEnd);
+  els.albumStrip.addEventListener("pointercancel", handleAlbumPointerEnd);
+  els.albumStrip.addEventListener("wheel", handleAlbumWheel, { passive: false });
   scheduleScrollUpdate();
 }
 
@@ -80,8 +96,8 @@ function normalizeItems(items) {
       location: item.location || title,
       chapter: item.chapter || `CHAPTER ${String(index + 1).padStart(2, "0")}`,
       date: item.date || "2026",
-      time: item.time || "00:00",
-      coordinates: item.coordinates || item.coords || "0.000, 0.000",
+      time: item.time || "--:--",
+      coordinates: item.coordinates || item.coords || "---",
       note: item.note || "light · distance · memory",
       caption: item.caption || "untitled frame",
       theme: item.theme || "auto",
@@ -91,21 +107,28 @@ function normalizeItems(items) {
   });
 }
 
-function fallbackItem() {
-  return {
-    id: "singapore",
-    title: "SINGAPORE",
-    location: "新加坡",
-    chapter: "CHAPTER 01",
-    date: "2026",
-    time: "07:44",
-    coordinates: "1.350, 103.988",
-    note: "changi · marina bay · the way home",
-    caption: "jewel, indoor rain",
-    theme: "auto",
-    cover: "./photos/01-singapore/cover.png",
-    images: ["./photos/01-singapore/cover.png"]
-  };
+function renderEmptyState() {
+  els.scrollSpace.style.height = "100vh";
+  els.chapterLabel.textContent = "CHAPTER 00";
+  els.locationLabel.textContent = "NO PHOTOS";
+  els.heroTitle.textContent = "PHOTO JOURNAL";
+  els.themeName.textContent = "NO GALLERY";
+  els.locationCn.textContent = "No photo folders found";
+  els.brushNote.textContent = "Add image folders under photos, then refresh.";
+  els.dateValue.textContent = "--";
+  els.timeValue.textContent = "--:--";
+  els.coordsValue.textContent = "---";
+  els.captionValue.textContent = "Waiting for photographs.";
+  els.photoPlace.textContent = "EMPTY";
+  els.photoIndex.textContent = "00 / 00";
+  els.photoTime.textContent = "--:--";
+  els.photoCoords.textContent = "---";
+  els.mainPhoto.removeAttribute("src");
+  els.previewTrack.innerHTML = "";
+  els.railCount.textContent = "00";
+  els.railProgress.style.transform = "scaleY(0)";
+  renderPalette(DEFAULT_THEME);
+  replayReveal(true);
 }
 
 async function setActive(index, options = {}) {
@@ -114,18 +137,19 @@ async function setActive(index, options = {}) {
   if (!item) return;
 
   state.activeIndex = nextIndex;
+  state.activePhotoIndex = state.photoIndexes.get(item.id) || 0;
   const theme = item.theme && item.theme !== "auto"
     ? getThemeById(item.theme)
     : classifyTheme(await sampleImageColor(item.cover));
 
   state.activeTheme = theme;
   applyTheme(theme);
-  renderContent(item, nextIndex);
+  renderContent(item, nextIndex, options);
   updatePreviewRail(nextIndex);
   replayReveal(options.immediate);
 }
 
-function renderContent(item, index) {
+function renderContent(item, index, options = {}) {
   els.chapterLabel.textContent = item.chapter;
   els.locationLabel.textContent = item.title;
   els.heroTitle.innerHTML = splitTitle(item.title);
@@ -137,13 +161,119 @@ function renderContent(item, index) {
   els.coordsValue.textContent = item.coordinates;
   els.captionValue.textContent = item.caption;
   els.photoPlace.textContent = item.title;
-  els.photoIndex.textContent = `${String(index + 1).padStart(2, "0")} / ${String(state.items.length).padStart(2, "0")}`;
   els.photoTime.textContent = item.time;
   els.photoCoords.textContent = item.coordinates;
-  els.mainPhoto.src = item.cover;
-  els.mainPhoto.alt = `${item.location} ${item.title} photo`;
   els.railCount.textContent = String(state.items.length).padStart(2, "0");
   renderPalette(state.activeTheme);
+  renderAlbumStrip(item);
+  showPhoto(item, state.activePhotoIndex, { immediate: options.immediate, direction: "album" });
+}
+
+function getAlbumImages(item) {
+  return Array.isArray(item.images) && item.images.length ? item.images : [item.cover].filter(Boolean);
+}
+
+function renderAlbumStrip(item) {
+  const images = getAlbumImages(item);
+  els.albumStrip.innerHTML = "";
+  els.albumStrip.hidden = images.length <= 1;
+  els.albumStrip.style.setProperty("--album-count", String(Math.max(images.length, 1)));
+
+  images.forEach((_, index) => {
+    const button = document.createElement("button");
+    button.className = "album-bar";
+    button.type = "button";
+    button.setAttribute("aria-label", `切换到第 ${index + 1} 张照片`);
+    button.addEventListener("click", (event) => {
+      if (state.albumSuppressClick) {
+        event.preventDefault();
+        return;
+      }
+      showPhoto(item, index, {
+        direction: index > state.activePhotoIndex ? "next" : "prev"
+      });
+    });
+
+    const fill = document.createElement("span");
+    button.appendChild(fill);
+    els.albumStrip.appendChild(button);
+  });
+
+  updateAlbumStrip(state.activePhotoIndex);
+}
+
+function showPhoto(item, photoIndex, options = {}) {
+  const images = getAlbumImages(item);
+  if (!images.length) return;
+
+  const nextPhotoIndex = clamp(photoIndex, 0, images.length - 1);
+  const src = images[nextPhotoIndex];
+  const currentSrc = els.mainPhoto.getAttribute("src") || "";
+  state.activePhotoIndex = nextPhotoIndex;
+  state.photoIndexes.set(item.id, nextPhotoIndex);
+  updateAlbumStrip(nextPhotoIndex);
+  updatePhotoMeta(item, nextPhotoIndex, images.length);
+  preloadAdjacent(images, nextPhotoIndex);
+
+  if (currentSrc === src && !options.immediate) return;
+
+  const sequence = state.photoSequence + 1;
+  state.photoSequence = sequence;
+  els.photoFrame.dataset.direction = options.direction || "next";
+  els.photoFrame.classList.remove("is-photo-loaded");
+  if (!options.immediate) {
+    els.photoFrame.classList.add("is-photo-changing");
+  }
+
+  const finalize = () => {
+    if (sequence !== state.photoSequence) return;
+    updatePhotoOrientation();
+    window.requestAnimationFrame(() => {
+      els.photoFrame.classList.remove("is-photo-changing");
+      els.photoFrame.classList.add("is-photo-loaded");
+    });
+  };
+
+  els.mainPhoto.onload = finalize;
+  els.mainPhoto.src = src;
+  els.mainPhoto.alt = `${item.location} ${item.title} photo ${nextPhotoIndex + 1}`;
+
+  if (els.mainPhoto.complete && els.mainPhoto.naturalWidth) {
+    finalize();
+  }
+}
+
+function updatePhotoMeta(item, photoIndex, photoCount) {
+  els.photoPlace.textContent = item.title;
+  els.photoIndex.textContent = `${String(photoIndex + 1).padStart(2, "0")} / ${String(photoCount).padStart(2, "0")}`;
+  els.photoTime.textContent = item.time;
+  els.photoCoords.textContent = item.coordinates;
+}
+
+function updateAlbumStrip(activeIndex) {
+  [...els.albumStrip.children].forEach((child, index) => {
+    child.classList.toggle("is-active", index === activeIndex);
+  });
+}
+
+function updatePhotoOrientation() {
+  const ratio = els.mainPhoto.naturalWidth / Math.max(els.mainPhoto.naturalHeight, 1);
+  els.photoFrame.classList.remove("is-landscape", "is-portrait", "is-square");
+  if (ratio > 1.16) {
+    els.photoFrame.classList.add("is-landscape");
+  } else if (ratio < 0.86) {
+    els.photoFrame.classList.add("is-portrait");
+  } else {
+    els.photoFrame.classList.add("is-square");
+  }
+}
+
+function preloadAdjacent(images, photoIndex) {
+  [photoIndex - 1, photoIndex + 1].forEach((index) => {
+    if (index < 0 || index >= images.length) return;
+    const image = new Image();
+    image.src = images[index];
+  });
 }
 
 function splitTitle(title) {
@@ -203,6 +333,102 @@ function scrollToIndex(index) {
     top: index * window.innerHeight,
     behavior: "smooth"
   });
+}
+
+function handleAlbumPointerDown(event) {
+  const item = state.items[state.activeIndex];
+  if (!item || getAlbumImages(item).length <= 1) return;
+
+  state.albumScrubbing = true;
+  state.albumPointerStartX = event.clientX;
+  state.albumSuppressClick = false;
+  els.albumStrip.classList.add("is-scrubbing");
+  els.albumStrip.setPointerCapture?.(event.pointerId);
+  scrubAlbumFromPointer(event);
+}
+
+function handleAlbumPointerMove(event) {
+  if (!state.albumScrubbing) return;
+  if (Math.abs(event.clientX - state.albumPointerStartX) > 4) {
+    state.albumSuppressClick = true;
+  }
+  scrubAlbumFromPointer(event);
+}
+
+function handleAlbumPointerEnd(event) {
+  if (!state.albumScrubbing) return;
+  state.albumScrubbing = false;
+  els.albumStrip.classList.remove("is-scrubbing");
+  els.albumStrip.releasePointerCapture?.(event.pointerId);
+  window.setTimeout(() => {
+    state.albumSuppressClick = false;
+  }, 80);
+}
+
+function scrubAlbumFromPointer(event) {
+  const item = state.items[state.activeIndex];
+  if (!item) return;
+
+  const images = getAlbumImages(item);
+  if (images.length <= 1) return;
+
+  const rect = els.albumStrip.getBoundingClientRect();
+  const ratio = clamp((event.clientX - rect.left) / Math.max(rect.width, 1), 0, 1);
+  const nextIndex = Math.round(ratio * (images.length - 1));
+  if (nextIndex === state.activePhotoIndex) return;
+
+  showPhoto(item, nextIndex, {
+    direction: nextIndex > state.activePhotoIndex ? "next" : "prev"
+  });
+}
+
+function handleAlbumWheel(event) {
+  const item = state.items[state.activeIndex];
+  if (!item) return;
+
+  const images = getAlbumImages(item);
+  if (images.length <= 1) return;
+
+  event.preventDefault();
+  const delta = Math.abs(event.deltaX) > Math.abs(event.deltaY) ? event.deltaX : event.deltaY;
+  if (!delta) return;
+
+  window.clearTimeout(state.albumWheelUnlockTimer);
+  if (state.albumWheelLocked) {
+    state.albumWheelUnlockTimer = window.setTimeout(() => {
+      state.albumWheelLocked = false;
+    }, 220);
+    return;
+  }
+
+  state.albumWheelLocked = true;
+  state.albumWheelUnlockTimer = window.setTimeout(() => {
+    state.albumWheelLocked = false;
+  }, 220);
+
+  const nextIndex = wrapPhotoIndex(state.activePhotoIndex + (delta > 0 ? 1 : -1), images.length);
+  showPhoto(item, nextIndex, {
+    direction: delta > 0 ? "next" : "prev"
+  });
+}
+
+function handleKeydown(event) {
+  if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+  const item = state.items[state.activeIndex];
+  if (!item) return;
+
+  const images = getAlbumImages(item);
+  if (images.length <= 1) return;
+
+  event.preventDefault();
+  const offset = event.key === "ArrowRight" ? 1 : -1;
+  const nextIndex = wrapPhotoIndex(state.activePhotoIndex + offset, images.length);
+  showPhoto(item, nextIndex, { direction: offset > 0 ? "next" : "prev" });
+}
+
+function wrapPhotoIndex(index, length) {
+  if (!length) return 0;
+  return ((index % length) + length) % length;
 }
 
 function scheduleScrollUpdate() {
@@ -364,3 +590,4 @@ function clamp(value, min, max) {
 function toKebab(value) {
   return value.replace(/[A-Z]/g, (match) => `-${match.toLowerCase()}`);
 }
+

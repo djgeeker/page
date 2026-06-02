@@ -8,6 +8,7 @@
   --theme-accent-alt: #7898a8;
   --theme-line: #eadbcb;
   --theme-shadow: rgba(5, 5, 8, 0.42);
+  --gallery-black: #050505;
   --scroll-progress: 0;
   font-family: Inter, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
   background: var(--theme-bg);
@@ -28,7 +29,14 @@ body {
   margin: 0;
   overflow-x: hidden;
   background:
-    linear-gradient(90deg, var(--theme-bg) 0%, var(--theme-bg) 44%, #050505 44%, #050505 100%);
+    linear-gradient(
+      90deg,
+      var(--theme-bg) 0%,
+      var(--theme-bg) 25%,
+      color-mix(in srgb, var(--theme-bg-soft) 60%, var(--gallery-black)) 32%,
+      var(--gallery-black) 39%,
+      var(--gallery-black) 100%
+    );
   color: var(--theme-text);
   transition: background-color 700ms ease;
 }
@@ -96,8 +104,14 @@ button {
   min-height: 720px;
   overflow: hidden;
   background:
-    radial-gradient(circle at 42% 42%, color-mix(in srgb, var(--theme-accent-alt) 25%, transparent), transparent 26%),
-    linear-gradient(90deg, var(--theme-bg) 0%, var(--theme-bg-soft) 42%, #050505 42%, #050505 100%);
+    linear-gradient(
+      90deg,
+      var(--theme-bg) 0%,
+      var(--theme-bg) 25%,
+      color-mix(in srgb, var(--theme-bg-soft) 60%, var(--gallery-black)) 32%,
+      var(--gallery-black) 39%,
+      var(--gallery-black) 100%
+    );
   transition: background 700ms ease, color 700ms ease;
 }
 
@@ -105,12 +119,14 @@ button {
   content: "";
   position: absolute;
   inset: 0;
+  z-index: 0;
   pointer-events: none;
   background-image:
     linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
     linear-gradient(90deg, rgba(255, 255, 255, 0.018) 1px, transparent 1px);
   background-size: 72px 72px;
-  mask-image: linear-gradient(90deg, #000 0%, #000 43%, transparent 72%);
+  opacity: 0.42;
+  mask-image: linear-gradient(90deg, #000 0%, #000 25%, rgba(0, 0, 0, 0.42) 32%, transparent 39%);
 }
 
 .text-panel {
@@ -263,23 +279,21 @@ button {
 }
 
 .photo-panel {
+  --photo-shift-x: clamp(-240px, -9vw, -140px);
   position: relative;
   z-index: 1;
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 0;
   min-width: 0;
-  padding: 38px 0;
-  overflow: hidden;
+  padding: 38px clamp(18px, 2.5vw, 42px) 100px 0;
+  overflow: visible;
 }
 
 .photo-panel::before {
-  content: "";
-  position: absolute;
-  inset: 0 auto 0 0;
-  z-index: 2;
-  width: 180px;
-  pointer-events: none;
-  background: linear-gradient(90deg, var(--theme-bg-soft), color-mix(in srgb, var(--theme-bg-soft) 42%, transparent), transparent);
+  display: none;
 }
 
 .photo-frame {
@@ -288,18 +302,61 @@ button {
   height: min(80vh, 760px);
   margin: 0;
   overflow: hidden;
-  background: #050505;
-  box-shadow: -28px 42px 80px var(--theme-shadow);
-  transition: transform 520ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 700ms ease;
+  background: transparent;
+  box-shadow: none;
+  transform: translateX(var(--photo-shift-x));
+  transition:
+    width 520ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    height 520ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    transform 520ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.photo-frame.is-landscape {
+  width: min(100%, 1274px);
+  height: min(86vh, 884px);
+}
+
+.photo-frame.is-portrait {
+  align-self: center;
+  width: min(100%, 930px);
+  height: min(90vh, 1040px);
+  transform: translateX(0);
+}
+
+.photo-frame.is-square {
+  width: min(100%, 680px);
+  height: min(78vh, 680px);
 }
 
 .photo-frame img {
   display: block;
   width: 100%;
   height: 100%;
-  object-fit: cover;
-  transform: scale(1.014);
-  transition: opacity 420ms ease, transform 900ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  object-fit: contain;
+  background: transparent;
+  transform: translate3d(0, 0, 0) scale(1);
+  transition:
+    opacity 420ms ease,
+    filter 420ms ease,
+    transform 720ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.photo-frame.is-photo-changing img {
+  opacity: 0;
+  filter: blur(4px);
+}
+
+.photo-frame[data-direction="next"].is-photo-changing img {
+  transform: translate3d(34px, 0, 0) scale(0.985);
+}
+
+.photo-frame[data-direction="prev"].is-photo-changing img {
+  transform: translate3d(-34px, 0, 0) scale(0.985);
+}
+
+.photo-frame.is-photo-loaded img {
+  opacity: 1;
+  filter: blur(0);
 }
 
 .is-ready .photo-frame img {
@@ -325,6 +382,77 @@ button {
 .photo-info {
   right: 22px;
   bottom: 18px;
+}
+
+.album-strip {
+  position: absolute;
+  left: 50%;
+  bottom: clamp(26px, 4vh, 46px);
+  z-index: 5;
+  display: grid;
+  grid-template-columns: repeat(var(--album-count, 1), minmax(4px, 1fr));
+  gap: 5px;
+  align-items: center;
+  width: min(calc(100% - 72px), 820px);
+  max-width: 820px;
+  min-height: 36px;
+  padding: 12px 14px;
+  overflow: hidden;
+  scrollbar-width: none;
+  user-select: none;
+  touch-action: pan-y;
+  cursor: grab;
+  background: color-mix(in srgb, #000 42%, transparent);
+  border: 1px solid color-mix(in srgb, var(--theme-line) 18%, transparent);
+  backdrop-filter: blur(12px);
+  box-shadow: -18px 20px 50px color-mix(in srgb, var(--theme-shadow) 72%, transparent);
+  transform: translateX(-50%);
+}
+
+.album-strip.is-scrubbing {
+  cursor: grabbing;
+}
+
+.album-strip[hidden] {
+  display: none;
+}
+
+.album-strip::-webkit-scrollbar {
+  display: none;
+}
+
+.album-bar {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  height: 16px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  opacity: 0.72;
+}
+
+.album-bar span {
+  position: absolute;
+  inset: 7px 0 auto;
+  height: 3px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.26);
+  transform-origin: left center;
+  transition:
+    background-color 260ms ease,
+    box-shadow 260ms ease,
+    opacity 260ms ease;
+}
+
+.album-bar:hover span {
+  background: rgba(255, 255, 255, 0.52);
+}
+
+.album-bar.is-active span {
+  background: var(--theme-accent);
+  box-shadow: 0 0 18px color-mix(in srgb, var(--theme-accent) 62%, transparent);
 }
 
 .preview-rail {
@@ -378,7 +506,8 @@ button {
   display: block;
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
+  background: #050505;
 }
 
 .preview-card span {
@@ -470,11 +599,11 @@ button {
 @keyframes photo-in {
   from {
     opacity: 0;
-    transform: translate3d(36px, 0, 0) scale(1.05);
+    transform: translate3d(36px, 0, 0) scale(0.985);
   }
   to {
     opacity: 1;
-    transform: translate3d(0, 0, 0) scale(1.014);
+    transform: translate3d(0, 0, 0) scale(1);
   }
 }
 
@@ -506,7 +635,12 @@ button {
   }
 
   .photo-panel {
-    padding: 0 28px 32px;
+    --photo-shift-x: 0px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    align-items: stretch;
+    padding: 0 28px 84px;
     background: var(--theme-bg);
   }
 
@@ -518,6 +652,26 @@ button {
   .photo-frame {
     width: 100%;
     height: 46vh;
+  }
+
+  .photo-frame.is-landscape,
+  .photo-frame.is-portrait,
+  .photo-frame.is-square {
+    width: 100%;
+    height: 46vh;
+  }
+
+  .album-strip {
+    width: 100%;
+    max-width: none;
+    left: 50%;
+    bottom: 28px;
+    grid-template-columns: repeat(var(--album-count, 1), minmax(3px, 1fr));
+    gap: 3px;
+  }
+
+  .album-bar {
+    height: 18px;
   }
 
   .caption {

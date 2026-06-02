@@ -1,0 +1,34 @@
+name: Site CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Check JavaScript syntax
+        run: |
+          node --check script.js
+          node --check blog.js
+          node --check tech-blog.js
+          node --check api/gallery.js
+          node --check api/tech-posts.js
+          node --check api/life-posts.js
+
+      - name: Validate content scanners
+        run: |
+          node -e "const {scanGallery}=require('./api/_content.cjs'); scanGallery().then(items=>{ if(items.length < 1) throw new Error('No gallery albums found'); console.log(items.map(item => item.id + ':' + item.images.length).join('\n')); })"
+          node -e "const {scanMarkdownPosts}=require('./api/_content.cjs'); Promise.all([scanMarkdownPosts('tech-blog'), scanMarkdownPosts('life-notes')]).then(([tech, life])=>{ if(tech.length < 1) throw new Error('No tech posts found'); if(life.length < 1) throw new Error('No life posts found'); console.log('tech=' + tech.length + ' life=' + life.length); })"

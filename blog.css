@@ -125,6 +125,13 @@ body::before {
   height: 100%;
 }
 
+.home-moon-link {
+  top: clamp(34px, 7vh, 72px);
+  left: clamp(40px, 6vw, 92px);
+  width: var(--moon-size);
+  height: var(--moon-size);
+}
+
 .simple-space .celestial-link {
   top: clamp(34px, 7vh, 72px);
   left: clamp(40px, 6vw, 92px);
@@ -143,6 +150,10 @@ body::before {
 }
 
 .simple-space {
+  z-index: 6;
+}
+
+.home-space {
   z-index: 6;
 }
 
