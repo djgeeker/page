@@ -126,11 +126,11 @@ body::before {
 }
 
 .simple-space .celestial-link {
-  top: clamp(42px, 9vh, 92px);
-  left: clamp(34px, 7vw, 120px);
+  top: clamp(34px, 7vh, 72px);
+  left: clamp(40px, 6vw, 92px);
   right: auto;
-  width: clamp(132px, 14vw, 220px);
-  height: clamp(132px, 14vw, 220px);
+  width: clamp(170px, 19vw, 280px);
+  height: clamp(170px, 19vw, 280px);
 }
 
 .simple-space {
@@ -145,6 +145,7 @@ body::before {
 .simple-space .mars {
   opacity: 0.72;
   mix-blend-mode: screen;
+  transform: scale(1.72);
   filter: brightness(0.9) saturate(1.12) contrast(1.08) drop-shadow(0 18px 52px rgba(146, 61, 35, 0.24)) drop-shadow(0 28px 58px rgba(0, 0, 0, 0.58));
 }
 
@@ -207,6 +208,12 @@ a {
   display: grid;
   place-items: center;
   padding: 56px 24px;
+}
+
+/* On content pages the planet sits top-left (≈280px tall).
+   Push the panel down so it starts below the planet zone. */
+.simple-page {
+  padding-top: clamp(300px, 34vh, 380px);
 }
 
 .about-card {
